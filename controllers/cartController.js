@@ -51,7 +51,15 @@ const removeFromCart = async (req, res)=>{
 
         if (cartData[itemId] > 0) {
             cartData[itemId] -= 1;
+        }else{
+
+            return res.status(400).json({ success: false, message: "Item not in cart." });
+
         }
+        if (cartData[itemId] === 0) {
+            delete cartData[itemId]; // Remove the item from the cart if quantity is 0
+        }
+
 
         await userModel.findByIdAndUpdate(req.user.userId, { cartData });
         res.json({ success: true, message: "Removed from cart successfully!" });
@@ -70,6 +78,10 @@ const getCart = async (req, res)=>{
         let userData = await userModel.findById(req.user.userId);
         let cartData = userData.cartData || {};
         res.json({ success: true, cartData });
+        if (!cartData) {
+            return res.status(404).json({ success: false, message: "Cart not found." });
+        }
+        
     }catch(error){
         console.log(error)
         res.json({success: false, message: "Error fetching cart"})
